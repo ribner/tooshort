@@ -66,7 +66,7 @@ def get_param_grid(model):
         n_estimators = [int(x)
                         for x in np.linspace(start=200, stop=2000, num=10)]
         max_features = ['auto', 'sqrt']
-        max_depth = [int(x) for x in np.linspace(10, 110, num=11)]
+        max_depth = [int(x) for x in np.linspace(10, 110, num=10)]
         max_depth.append(None)
         min_samples_split = [2, 5, 10]
         min_samples_leaf = [1, 2, 4]
@@ -93,10 +93,10 @@ def get_param_grid(model):
         return dict(C=Cs,
                     gamma=gammas,
                     # TODO - add kernels?
-                    kernel='rbf'
+                    kernel=['rbf']
                     )
     if (name == "SVR"):
-        kernel = ['linear', 'rbf', 'poly']
+        kernel = ['linear']
         Cs = [0.001, 0.01, 0.1, 1, 10]
         gammas = [0.001, 0.01, 0.1, 1]
         epsilon = [0.1, 0.2, 0.5, 0.3]
@@ -140,11 +140,9 @@ def get_param_grid(model):
             alpha=alpha
         )
     if (name == "ElasticNet"):
-        max_iter = [1, 5, 10]
         alpha = [0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000]
         l1_ratio = np.arange(0.0, 1.0, 0.1)
         return dict(
-            max_iter=max_iter,
             alpha=alpha,
             l1_ratio=l1_ratio
         )

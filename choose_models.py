@@ -25,8 +25,7 @@ def choose_models(y, prediction_type):
                 SVR,
                 Ridge,
                 ElasticNet,
-                Lasso,
-                LinearSVC
+                Lasso
             ]
         # SGD regressor needs more than 100k samples
         else:
@@ -35,21 +34,22 @@ def choose_models(y, prediction_type):
                 SVR,
                 Ridge,
                 ElasticNet,
-                Lasso,
-                LinearSVC
+                Lasso
             ]
     if (prediction_type == "classification"):
         if (n_samples > 100000):
             return [
-                # SVC,
+                SVC,
                 RandomForestClassifier,
                 KNeighborsClassifier,
-                SGDClassifier
+                SGDClassifier,
+                LinearSVC
             ]
         else:
             return [
-                # SVC,
+                SVC,
                 RandomForestClassifier,
                 KNeighborsClassifier,
+                LinearSVC
             ]
     raise Exception("prediction_type must be categorical or regression")

@@ -11,6 +11,7 @@ from too_short import preproc
 from too_short import get_param_grid
 from grid_search import search
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split
 
 
 def get_iris():
@@ -18,6 +19,15 @@ def get_iris():
     X = pd.DataFrame(wine.data)
     X.columns = wine.feature_names
     y = pd.DataFrame(wine.target)
+    y.columns = ["target"]
+    return X, y
+
+
+def get_boston():
+    boston = load_boston()
+    X = pd.DataFrame(boston.data)
+    X.columns = boston.feature_names
+    y = pd.DataFrame(boston.target)
     y.columns = ["target"]
     return X, y
 
@@ -31,8 +41,29 @@ class TestEndToEnd(unittest.TestCase):
                                          'proanthocyanins', 'color_intensity', 'hue',
                                          'od280/od315_of_diluted_wines', 'proline'])
         X = result[0]
+
         models = choose_models(y, prediction_type="classification")
-        result = search(X, y, models)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y["target"].ravel(), test_size=0.33, random_state=42)
+        result = search(models, X_train, y_train, X_test, y_test)
+        model_keys = result.keys()
+        self.assertIn('SVC', model_keys)
+
+    def testRegressionSmallEndToEnd(self):
+        X, y = get_boston()
+        result = preproc([X],
+                         standard_scale=['CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX',
+                                         'PTRATIO', 'B', 'LSTAT'])
+        X = result[0]
+
+        models = choose_models(y, prediction_type="regression")
+        print(models)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y["target"].ravel(), test_size=0.33, random_state=42)
+        result = search(models, X_train, y_train, X_test, y_test)
+        model_keys = result.keys()
+        print(result)
+        self.assertIn('Ridge', model_keys)
 
 
 class TestGridSearch(unittest.TestCase):
@@ -45,7 +76,9 @@ class TestGridSearch(unittest.TestCase):
                                          'proanthocyanins', 'color_intensity', 'hue',
                                          'od280/od315_of_diluted_wines', 'proline'])
         X = result[0]
-        result = search(X, y, [KNeighborsClassifier])
+        result = search([KNeighborsClassifier], X, y)
+        model_keys = result.keys()
+        self.assertIn('KNeighborsClassifier', model_keys)
 
 
 class TestChooseModels(unittest.TestCase):
