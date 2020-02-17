@@ -37,6 +37,7 @@ def choose_models(y, prediction_type):
                 Lasso
             ]
     if (prediction_type == "classification"):
+        # TODO add logistic regression?
         if (n_samples > 100000):
             return [
                 SVC,

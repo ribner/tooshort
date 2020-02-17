@@ -10,6 +10,7 @@ from choose_models import choose_models
 from too_short import preproc
 from too_short import get_param_grid
 from grid_search import search
+from feature_selection import select_features
 from oversampling import oversample
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
@@ -37,7 +38,20 @@ def get_boston():
 
 class TestFeatureSelection(unittest.TestCase):
     def testBasicFeatureSelection(self):
-        return None
+        X, y = get_iris()
+        result = preproc([X],
+                         standard_scale=['alcohol', 'malic_acid', 'ash', 'alcalinity_of_ash', 'magnesium',
+                                         'total_phenols', 'flavanoids', 'nonflavanoid_phenols',
+                                         'proanthocyanins', 'color_intensity', 'hue',
+                                         'od280/od315_of_diluted_wines', 'proline'])
+        X = result[0]
+        models = choose_models(y, prediction_type="classification")
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y["target"].ravel(), test_size=0.33, random_state=42)
+        X_train_filtered, X_test_filtered = select_features(
+            X_train, y_train, X_test, prediction_type="regression")
+        self.assertTrue(len(X_train.columns) > len(X_train_filtered.columns))
+        self.assertTrue(len(X_test.columns) > len(X_test_filtered.columns))
 
 
 class TestEDA(unittest.TestCase):
