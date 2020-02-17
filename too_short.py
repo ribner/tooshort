@@ -20,6 +20,18 @@ from sklearn.feature_selection import SelectFromModel
 
 class TooShort:
 
+    def __init__(self, X=None, y=None, prediction_type=None):
+        self.X = X
+        self.y = y
+        self.prediction_type = prediction_type
+        if (X is not None and y is not None):
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y["target"].ravel(), test_size=0.33, random_state=42)
+            self.X_train = X_train
+            self.X_test = X_test
+            self.y_train = y_train
+            self.y_test = y_test
+
     def get_param_grid(self, model):
         """Function providing a hyperparam grid to be used in sklearn hyperparameter optimizatoin
         Keyword arguments:
@@ -177,10 +189,11 @@ class TooShort:
         print(name)
         raise Exception("Model not supported.")
 
-    def preproc(self, X, OHE=[], standard_scale=[], numerical_impute=[], categegorical_impute=[], label_encode={}):
+    def preproc(self, X_train=None, X_test=None, OHE=[], standard_scale=[], numerical_impute=[], categegorical_impute=[], label_encode={}):
         """Prerocesses data frames, including onehot encoding, scaling, and imputation, and label encoding
         Keyord arguments:
-        X: list. List of pandas data frame type. Can be one data frame, or multiple of same structure (i.e. train set and test test). First element must be train set. - Required
+        X_train: DF or matrix. Train data. - Required
+        X_test: DF or matrix. Test data. - Required
         OHE: Array of columns to be processed with sklearn OneHotEncoder, this accepts non numerical categorical rows without need for label encoding. - Default []
         standard_scale: list. List of columns to be processes with standard scalar. - Defualt []
         numerical_impute: list. list of column names that should be imputed using mean method. - Default []
@@ -190,6 +203,10 @@ class TooShort:
         Returns:
         List of processed pandas dataframes
         """
+        if (X_train is None):
+            X_train = self.X_train
+        if (X_test is None):
+            X_test = self.X_test
         transformer = ColumnTransformer(
             transformers=[
                 ('cat_imputer',
@@ -211,9 +228,9 @@ class TooShort:
             ],
             remainder='passthrough'  # donot apply anything to the remaining columns
         )
-        column_names = X[0].columns
+        column_names = X_train.columns
         # fit transformation to the train X set
-        transformer.fit(X[0])
+        transformer.fit(X_train)
         # fetch newly created ohe transformed columns
         if (len(OHE) > 0):
             ohe_columns = transformer.named_transformers_.one_hot.get_feature_names(
@@ -224,20 +241,25 @@ class TooShort:
         column_names = list(filter(lambda x: x not in OHE, column_names))
         # reset column names with newly created ohe column names
         column_names = np.append(ohe_columns, column_names)
+        X_train = pd.DataFrame(data=transformer.transform(
+            X_train), columns=column_names)
         # transform test and validation sets if they are included
-        for i in range(0, len(X)):
-            X[i] = pd.DataFrame(data=transformer.transform(
-                X[i]), columns=column_names)
+        if (X_test is not None):
+            X_test = pd.DataFrame(data=transformer.transform(
+                X_test), columns=column_names)
         # label encoding tranformation
         le_columns = label_encode.keys()
         for column in le_columns:
             le = LabelEncoder()
             le.fit(label_encode[column])
-            for df in X:
-                df[column] = le.transform(df[column])
-        return X
+            X_train[column] = le.transform(X_train[column])
+            if (X_test is not None):
+                X_test[column] = le.transform(X_test[column])
+        self.X_train = X_train
+        self.X_test = X_test
+        return X_train, X_test
 
-    def choose_models(self, y, prediction_type):
+    def choose_models(self, y_train=None, prediction_type=None):
         """Function giving you suggested sklearn models based on prediction type and size of data
         Keyword arguments:
         y = pdDataframe or list. Target values
@@ -245,12 +267,16 @@ class TooShort:
         Returns:
         List of sklearn model classes
         """
-        if isinstance(y, pd.DataFrame):
-            y = y.iloc[:, 0].ravel()
-        n_samples = len(y)
+        if (prediction_type is None):
+            prediction_type = self.prediction_type
+        if (y_train is None):
+            y_train = self.y_train
+        if isinstance(y_train, pd.DataFrame):
+            y_train = y_train.iloc[:, 0].ravel()
+        n_samples = len(y_train)
         if (prediction_type == "regression"):
             if (n_samples > 100000):
-                return [
+                self.models = [
                     LinearRegression,
                     SGDRegressor,
                     SVR,
@@ -258,32 +284,36 @@ class TooShort:
                     ElasticNet,
                     Lasso
                 ]
+                return self.models
             # SGD regressor needs more than 100k samples
             else:
-                return [
+                self.models = [
                     LinearRegression,
                     SVR,
                     Ridge,
                     ElasticNet,
                     Lasso
                 ]
+                return self.models
         if (prediction_type == "classification"):
             # TODO add logistic regression?
             if (n_samples > 100000):
-                return [
+                self.models = [
                     SVC,
                     RandomForestClassifier,
                     KNeighborsClassifier,
                     SGDClassifier,
                     LinearSVC
                 ]
+                return self.models
             else:
-                return [
+                self.models = [
                     SVC,
                     RandomForestClassifier,
                     KNeighborsClassifier,
                     LinearSVC
                 ]
+                return self.models
         raise Exception("prediction_type must be categorical or regression")
 
     def oversample(self, X_train, y_train):
@@ -316,9 +346,19 @@ class TooShort:
         else:
             oversample = SMOTE()
             os_X, os_y = oversample.fit_resample(X_train, y_train)
-        return os_X, os_y
+        self.os_X_train = os_X
+        self.os_Y_train = os_y
+        return self.os_X_train, self.os_Y_train
 
-    def select_features(self, X_train, y_train, X_test, prediction_type):
+    def select_features(self, X_train=None, y_train=None, X_test=None, prediction_type=None):
+        if (X_train is None):
+            X_train = self.X_train
+        if (y_train is None):
+            y_train = self.y_train
+        if (X_test is None):
+            X_test = self.X_test
+        if (prediction_type is None):
+            prediction_type = self.prediction_type
         if (prediction_type == "regression"):
             selector = SelectFromModel(
                 estimator=LinearRegression()).fit(X_train, y_train)
@@ -327,7 +367,7 @@ class TooShort:
             support = selector.get_support()
         if (prediction_type == "classification"):
             selector = SelectFromModel(
-                estimator=KNeighborsClassifier()).fit(X_train, y_train)
+                estimator=LinearSVC()).fit(X_train, y_train)
             selected_X_train = pd.DataFrame(data=selector.transform(X_train))
             selected_X_test = pd.DataFrame(data=selector.transform(X_test))
             support = selector.get_support()
@@ -347,10 +387,20 @@ class TooShort:
             selected_X_test.columns = filtered_columns
         return selected_X_train, selected_X_test
 
-    def search(self, models, X, y, X_test=None, y_test=None, scoring=None):
+    def search(self, models=None, X_train=None, y_train=None, X_test=None, y_test=None, scoring=None):
+        if (X_train is None):
+            X_train = self.X_train
+        if (y_train is None):
+            y_train = self.y_train
+        if (X_test is None):
+            X_test = self.X_test
+        if (y_test is None):
+            y_test = self.y_test
+        if (models is None):
+            models = self.models
         results = {}
-        if isinstance(y, pd.DataFrame):
-            y = y.iloc[:, 0].ravel()
+        if isinstance(y_train, pd.DataFrame):
+            y_train = y_train.iloc[:, 0].ravel()
         for model in models:
             param_grid = self.get_param_grid(model)
             total_params = sum(map(lambda x: len(x), param_grid.keys()))
@@ -360,13 +410,14 @@ class TooShort:
             else:
                 search = GridSearchCV(model(), param_grid,
                                       n_jobs=-1, scoring=scoring)
-            search.fit(X, y)
+            search.fit(X_test, y_test)
             test_score = 'N/A'
-            if (isinstance(X_test, pd.DataFrame)):
+            if (X_test is not None):
                 test_score = search.score(X_test, y_test)
             results[model.__name__] = {
                 'best_score': search.best_score_,
                 'best_params': search.best_params_,
                 'test_score': test_score
             }
-        return results
+        self.results = results
+        return self.results
