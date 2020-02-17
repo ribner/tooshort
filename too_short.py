@@ -20,6 +20,11 @@ from sklearn.feature_selection import SelectFromModel
 
 class TooShort:
 
+    def __init__(self, X=None, y=None, prediction_type=None):
+        self.X = X
+        self.y = y
+        self.prediction_type = prediction_type
+
     def get_param_grid(self, model):
         """Function providing a hyperparam grid to be used in sklearn hyperparameter optimizatoin
         Keyword arguments:
@@ -237,7 +242,7 @@ class TooShort:
                 df[column] = le.transform(df[column])
         return X
 
-    def choose_models(self, y, prediction_type):
+    def choose_models(self, y, prediction_type=None):
         """Function giving you suggested sklearn models based on prediction type and size of data
         Keyword arguments:
         y = pdDataframe or list. Target values
@@ -245,6 +250,8 @@ class TooShort:
         Returns:
         List of sklearn model classes
         """
+        if (prediction_type == None):
+            prediction_type = self.prediction_type
         if isinstance(y, pd.DataFrame):
             y = y.iloc[:, 0].ravel()
         n_samples = len(y)
@@ -318,7 +325,9 @@ class TooShort:
             os_X, os_y = oversample.fit_resample(X_train, y_train)
         return os_X, os_y
 
-    def select_features(self, X_train, y_train, X_test, prediction_type):
+    def select_features(self, X_train, y_train, X_test, prediction_type=None):
+        if (prediction_type == None):
+            prediction_type = self.prediction_type
         if (prediction_type == "regression"):
             selector = SelectFromModel(
                 estimator=LinearRegression()).fit(X_train, y_train)
@@ -327,7 +336,8 @@ class TooShort:
             support = selector.get_support()
         if (prediction_type == "classification"):
             selector = SelectFromModel(
-                estimator=KNeighborsClassifier()).fit(X_train, y_train)
+                estimator=KNeighborsClassifier())
+            selector.fit(X_train, y_train)
             selected_X_train = pd.DataFrame(data=selector.transform(X_train))
             selected_X_test = pd.DataFrame(data=selector.transform(X_test))
             support = selector.get_support()

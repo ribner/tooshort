@@ -40,18 +40,17 @@ def get_boston():
 class TestFeatureSelection(unittest.TestCase):
     def testBasicFeatureSelection(self):
         X, y = get_iris()
-        too_short = TooShort()
+        too_short = TooShort(prediction_type="classification")
         result = too_short.preproc([X],
                                    standard_scale=['alcohol', 'malic_acid', 'ash', 'alcalinity_of_ash', 'magnesium',
                                                    'total_phenols', 'flavanoids', 'nonflavanoid_phenols',
                                                    'proanthocyanins', 'color_intensity', 'hue',
                                                    'od280/od315_of_diluted_wines', 'proline'])
         X = result[0]
-        models = too_short.choose_models(y, prediction_type="classification")
         X_train, X_test, y_train, y_test = train_test_split(
             X, y["target"].ravel(), test_size=0.33, random_state=42)
         X_train_filtered, X_test_filtered = too_short.select_features(
-            X_train, y_train, X_test, prediction_type="regression")
+            X_train, y_train, X_test)
         self.assertTrue(len(X_train.columns) > len(X_train_filtered.columns))
         self.assertTrue(len(X_test.columns) > len(X_test_filtered.columns))
 
@@ -84,7 +83,7 @@ class TestOversampling(unittest.TestCase):
 
 class TestEndToEnd(unittest.TestCase):
     def testCatSmallEndToEnd(self):
-        too_short = TooShort()
+        too_short = TooShort(prediction_type="classification")
         X, y = get_iris()
         result = too_short.preproc([X],
                                    standard_scale=['alcohol', 'malic_acid', 'ash', 'alcalinity_of_ash', 'magnesium',
@@ -93,7 +92,7 @@ class TestEndToEnd(unittest.TestCase):
                                                    'od280/od315_of_diluted_wines', 'proline'])
         X = result[0]
 
-        models = too_short.choose_models(y, prediction_type="classification")
+        models = too_short.choose_models(y)
         X_train, X_test, y_train, y_test = train_test_split(
             X, y["target"].ravel(), test_size=0.33, random_state=42)
         result = too_short.search(models, X_train, y_train, X_test, y_test)
@@ -101,14 +100,14 @@ class TestEndToEnd(unittest.TestCase):
         self.assertIn('SVC', model_keys)
 
     def testRegressionSmallEndToEnd(self):
-        too_short = TooShort()
+        too_short = TooShort(prediction_type="regression")
         X, y = get_boston()
         result = too_short.preproc([X],
                                    standard_scale=['CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX',
                                                    'PTRATIO', 'B', 'LSTAT'])
         X = result[0]
 
-        models = too_short.choose_models(y, prediction_type="regression")
+        models = too_short.choose_models(y)
         print(models)
         X_train, X_test, y_train, y_test = train_test_split(
             X, y["target"].ravel(), test_size=0.33, random_state=42)
@@ -136,34 +135,34 @@ class TestGridSearch(unittest.TestCase):
 
 class TestChooseModels(unittest.TestCase):
     def test_returns_regression_models_small_samples(self):
-        too_short = TooShort()
+        too_short = TooShort(prediction_type="regression")
         iris = load_iris()
         y = pd.DataFrame(iris.target)
         y.columns = ["target"]
-        result = too_short.choose_models(y, prediction_type="regression")
+        result = too_short.choose_models(y)
         self.assertIn(LinearRegression, result)
         self.assertNotIn(SGDRegressor, result)
 
     def test_returns_regression_models_many_samples(self):
-        too_short = TooShort()
+        too_short = TooShort(prediction_type="regression")
         y = np.random.choice([0, 1, 2, 3, 4], 110000)
-        result = too_short.choose_models(y, prediction_type="regression")
+        result = too_short.choose_models(y)
         self.assertIn(LinearRegression, result)
         self.assertIn(SGDRegressor, result)
 
     def test_returns_classification_models_small_samples(self):
-        too_short = TooShort()
+        too_short = TooShort(prediction_type="classification")
         iris = load_iris()
         y = pd.DataFrame(iris.target)
         y.columns = ["target"]
-        result = too_short.choose_models(y, prediction_type="classification")
+        result = too_short.choose_models(y)
         self.assertIn(SVC, result)
         self.assertNotIn(SGDClassifier, result)
 
     def test_returns_classification_models_many_samples(self):
-        too_short = TooShort()
+        too_short = TooShort(prediction_type="classification")
         y = np.random.choice([0, 1, 2, 3, 4], 110000)
-        result = too_short.choose_models(y, prediction_type="classification")
+        result = too_short.choose_models(y)
         self.assertIn(SVC, result)
         self.assertIn(SGDClassifier, result)
 
