@@ -336,8 +336,7 @@ class TooShort:
             support = selector.get_support()
         if (prediction_type == "classification"):
             selector = SelectFromModel(
-                estimator=KNeighborsClassifier())
-            selector.fit(X_train, y_train)
+                estimator=LinearSVC()).fit(X_train, y_train)
             selected_X_train = pd.DataFrame(data=selector.transform(X_train))
             selected_X_test = pd.DataFrame(data=selector.transform(X_test))
             support = selector.get_support()
