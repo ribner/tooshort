@@ -10,8 +10,11 @@ from choose_models import choose_models
 from too_short import preproc
 from too_short import get_param_grid
 from grid_search import search
+from oversampling import oversample
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.datasets import make_classification
+from collections import Counter
 
 
 def get_iris():
@@ -30,6 +33,35 @@ def get_boston():
     y = pd.DataFrame(boston.target)
     y.columns = ["target"]
     return X, y
+
+
+class TestFeatureSelection(unittest.TestCase):
+    def testBasicFeatureSelection(self):
+        return None
+
+
+class TestEDA(unittest.TestCase):
+    def testBasicEDA(self):
+        return None
+
+
+class TestOversampling(unittest.TestCase):
+    def testBasicOversamplingNoDfWithUndersample(self):
+        X, y = make_classification(n_samples=10000, n_features=2, n_redundant=0,
+                                   n_clusters_per_class=1, weights=[0.99], flip_y=0, random_state=1)
+        os_X, os_y = oversample(X, y)
+        count = Counter(os_y)
+        self.assertTrue(count[0] == 200)
+        self.assertTrue(count[1] == 200)
+
+    def testBasicOversamplingNoDfNoUndersampling(self):
+        X, y = make_classification(n_samples=10000, n_features=2, n_redundant=0,
+                                   n_clusters_per_class=1, weights=[0.75], flip_y=0, random_state=1)
+        os_X, os_y = oversample(X, y)
+        count = Counter(os_y)
+        print(count)
+        self.assertTrue(count[0] == 7500)
+        self.assertTrue(count[1] == 7500)
 
 
 class TestEndToEnd(unittest.TestCase):
