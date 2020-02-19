@@ -24,7 +24,7 @@ The module exposes one class, too_short.
 
 **init function**
 
-**Keyword args:**
+**Args:**
 X: pd.dataframe - Df with full X data (will be split within init) - optional (you will need to include this for most functionality)
 y: list - list of targets (will be split within init) - optional (you will need to include this for most functionality)
 prediction_type: string - String of either "classification" or "regression" - optional (you will need to include this for most functionality)
@@ -38,7 +38,7 @@ None
 
 **Function for setting class attributes manually. Useful for overriding defaults if you are trying to test different settings**
 
-**Keyword args:**
+**Args:**
 X: Pd dataframe containing X - optional
 y: target list - optional
 X_test: pd dataframe - optional
@@ -59,7 +59,7 @@ None
 
 **Function providing a hyperparam grid to be used in sklearn hyperparameter optimizatoin. This is automatically called internally in the search function, the user need not call this directly.**
 
-**Keyword args:**
+**Args:**
 model: sklearns model.**name** property - Required
 prepend: string to be prepended to grid keys for grid search along with to underscores. this will generally be the model name as a string. ie "LogisticRegression" - optional
 
@@ -77,7 +77,7 @@ get_param_grid(LinearRegression)
 
 **Prerocesses data frames, including onehot encoding, scaling, and imputation, and label encoding**
 
-**Keyord arguments:**
+**Args:**
 OHE: Array of columns to be processed with sklearn OneHotEncoder, this accepts non numerical categorical rows without need for label encoding. - Default []
 standard_scale: list. List of columns to be processes with standard scalar. - Defualt []
 numerical_impute: list. list of column names that should be imputed using mean method. - Default []
@@ -94,7 +94,7 @@ List of processed pandas dataframes. Processed dfs will overwrite self.X_train a
 
 **Function giving you suggested sklearn models based on prediction type and size of data. classification_type must be set during the class instantiation or using set_attributes.**
 
-**Keyword args:**
+**Args:**
 None
 
 **Returns:**
@@ -107,7 +107,7 @@ the search method.
 
 **Function tranforming train data using undersampling and oversampling. Uses undersampling as well as oversampling if the ratio between classes is highly imbalanced. Otherwise only oversampling will be used**
 
-**Keyword args:**
+**Args:**
 None
 
 **Returns:**
