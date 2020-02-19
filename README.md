@@ -274,6 +274,6 @@ result = too_short.search(scoring="recall")
 
 ```
 
-```
+## Further examples
 
-```
+**for more example check <a href="./test.py">The test file</a>**
