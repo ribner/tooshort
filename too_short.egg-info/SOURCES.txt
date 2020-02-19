@@ -1,0 +1,9 @@
+README.md
+setup.cfg
+setup.py
+too_short/__init__.py
+too_short.egg-info/PKG-INFO
+too_short.egg-info/SOURCES.txt
+too_short.egg-info/dependency_links.txt
+too_short.egg-info/requires.txt
+too_short.egg-info/top_level.txt
