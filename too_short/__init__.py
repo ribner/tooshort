@@ -19,8 +19,31 @@ from sklearn.feature_selection import SelectFromModel
 
 
 class TooShort:
+    """
+    This is a package intended to make your life easier, and automate a lot of the common things dealt with in supervised learning. Specifically with building and testing sklearn models. Although, it also relies on some other useful tools like SMOTE for imabalanced data.
+
+    In short:
+
+    - Chooses relevant models for you based on the type of problem (classification or regression)
+    - Provides param grids for the chosen models
+    - Wraps all the preprocessing into one function so you can do somewhat customized preprocessing with a oneliner
+    - Wraps Oversampling and undersampling using the imbalanced learn package to simplify the process
+    - Feature selection based on a model input
+    - Automatically splitting train and test sets, as well as evaluting them seperately.
+    - Most importantly, provides a simple method to search and compare all the relevant models and grids with either your original data, or the transformed version set in the preprocessing, oversampling, or feature selection step.
+        """
 
     def __init__(self, X=None, y=None, prediction_type=None):
+        """ init function
+
+        Keyword args:
+        X: pd.dataframe - Df with full X data (will be split within init) - optional (you will need to include this for most functionality)
+        y: list - list of targets (will be split within init) - optional  (you will need to include this for most functionality)
+        prediction_type: string - String of either "classification" or "regression" - optional  (you will need to include this for most functionality)
+
+        Returns:
+        None
+        """
         self.X = X
         self.y = y
         self.prediction_type = prediction_type

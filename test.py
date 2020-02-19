@@ -106,23 +106,23 @@ class TestOversampling(unittest.TestCase):
     #     print(result)
 
     # slow
-    # def testCreditDatasetAlternateScoringEndToEnd(self):
-    #     df = pd.read_excel(
-    #         "https://archive.ics.uci.edu/ml/machine-learning-databases/00350/default%20of%20credit%20card%20clients.xls", encoding="utf-8", skiprows=1)
-    #     df = df.rename(
-    #         columns={'default payment next month': 'DEFAULT_PAYMENT_NEXT_MONTH', 'PAY_0': 'PAY_1'})
-    #     y = df['DEFAULT_PAYMENT_NEXT_MONTH'].ravel()
-    #     X = df.drop(['DEFAULT_PAYMENT_NEXT_MONTH'], axis=1)
-    #     too_short = TooShort(X, y, prediction_type="classification")
-    #     # too_short.oversample()
-    #     too_short.preproc(standard_scale=['LIMIT_BAL', 'SEX', 'EDUCATION', 'MARRIAGE', 'AGE', 'PAY_1', 'PAY_2',
-    #                                       'PAY_3', 'PAY_4', 'PAY_5', 'PAY_6', 'BILL_AMT1', 'BILL_AMT2',
-    #                                       'BILL_AMT3', 'BILL_AMT4', 'BILL_AMT5', 'BILL_AMT6', 'PAY_AMT1',
-    #                                       'PAY_AMT2', 'PAY_AMT3', 'PAY_AMT4', 'PAY_AMT5', 'PAY_AMT6'])
-    #     # too_short.select_features()
-    #     too_short.choose_models()
-    #     result = too_short.search(scoring="recall_macro")
-    #     print(result)
+    def testCreditDatasetAlternateScoringEndToEnd(self):
+        df = pd.read_excel(
+            "https://archive.ics.uci.edu/ml/machine-learning-databases/00350/default%20of%20credit%20card%20clients.xls", encoding="utf-8", skiprows=1)
+        df = df.rename(
+            columns={'default payment next month': 'DEFAULT_PAYMENT_NEXT_MONTH', 'PAY_0': 'PAY_1'})
+        y = df['DEFAULT_PAYMENT_NEXT_MONTH'].ravel()
+        X = df.drop(['DEFAULT_PAYMENT_NEXT_MONTH'], axis=1)
+        too_short = TooShort(X, y, prediction_type="classification")
+        too_short.oversample()
+        too_short.preproc(standard_scale=['LIMIT_BAL', 'SEX', 'EDUCATION', 'MARRIAGE', 'AGE', 'PAY_1', 'PAY_2',
+                                          'PAY_3', 'PAY_4', 'PAY_5', 'PAY_6', 'BILL_AMT1', 'BILL_AMT2',
+                                          'BILL_AMT3', 'BILL_AMT4', 'BILL_AMT5', 'BILL_AMT6', 'PAY_AMT1',
+                                          'PAY_AMT2', 'PAY_AMT3', 'PAY_AMT4', 'PAY_AMT5', 'PAY_AMT6'])
+        too_short.select_features()
+        too_short.choose_models()
+        result = too_short.search(scoring="recall")
+        print(result)
 
 
 class TestEndToEnd(unittest.TestCase):
@@ -159,10 +159,7 @@ class TestGridSearch(unittest.TestCase):
         X, y = get_iris()
         too_short = TooShort(X, y)
         result = too_short.preproc(
-            standard_scale=['alcohol', 'malic_acid', 'ash', 'alcalinity_of_ash', 'magnesium',
-                            'total_phenols', 'flavanoids', 'nonflavanoid_phenols',
-                            'proanthocyanins', 'color_intensity', 'hue',
-                            'od280/od315_of_diluted_wines', 'proline'])
+            standard_scale=too_short.X_train.columns)
         too_short.set_attributes(models=[KNeighborsClassifier])
         result = too_short.search()
         model_keys = result.keys()
@@ -231,6 +228,7 @@ class TestPreproc(unittest.TestCase):
                             'total_phenols', 'flavanoids', 'nonflavanoid_phenols',
                             'proanthocyanins', 'color_intensity', 'hue',
                             'od280/od315_of_diluted_wines', 'proline'])
+        print(too_short.X_train.head())
         assert_frame_equal(X, X_copy)
 
     def test_create_ohe(self):
