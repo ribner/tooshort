@@ -18,7 +18,9 @@ In short:
 
 The module exposes one class, too_short.
 
-##### init
+---
+
+### init
 
 `def __init__(self, X=None, y=None, prediction_type=None):`
 
@@ -32,36 +34,42 @@ prediction_type: string - String of either "classification" or "regression" - op
 **Returns:**
 None
 
-##### set_attributes
+---
+
+### set_attributes
 
 `def set_attributes(self, X=None, y=None, X_test=None, y_test=None, X_train=None, y_train=None, prediction_type=None, imb_pipeline_steps=None, models=None):`
 
 **Function for setting class attributes manually. Useful for overriding defaults if you are trying to test different settings**
 
 **Args:**
-X: Pd dataframe containing X - optional
-y: target list - optional
-X_test: pd dataframe - optional
-y_test: pd dataframe - optional
-X_train: pd dataframe - optional
-y_train: pd dataframe - optional
-prediction_type: string - Either "classification" or "regression" - optional
-imb_pipline_steps: list - Containing imbalanced learn Pipeline steps. ex [('smote', SMOTE(random_state=random_state))]. If you want to use this within the search method
-dont add a sklearn model step to the end of this, that will be done automatically in the the search function. - optional
-models: list - List of models to be used in in the search function. This would be set automatically in choose_models function, but you can override here. Do not instantiate the models within the list. - optional
+
+- X: Pd dataframe containing X - optional
+- y: target list - optional
+- X_test: pd dataframe - optional
+- y_test: pd dataframe - optional
+- X_train: pd dataframe - optional
+- y_train: pd dataframe - optional
+- prediction_type: string - Either "classification" or "regression" - optional
+- imb_pipline_steps: list - Containing imbalanced learn Pipeline steps. ex [('smote', SMOTE(random_state=random_state))]. If you want to use this within the search method  
+  dont add a sklearn model step to the end of this, that will be done automatically in the the search function. - optional
+- models: list - List of models to be used in in the search function. This would be set automatically in choose_models function, but you can override here. Do not instantiate the models within the list. - optional
 
 **Returns:**
 None
 
-##### get_param_grid
+---
+
+### get_param_grid
 
 `def get_param_grid(self, model, prepend=None):`
 
 **Function providing a hyperparam grid to be used in sklearn hyperparameter optimizatoin. This is automatically called internally in the search function, the user need not call this directly.**
 
 **Args:**
-model: sklearns model.**name** property - Required
-prepend: string to be prepended to grid keys for grid search along with to underscores. this will generally be the model name as a string. ie "LogisticRegression" - optional
+
+- model: sklearns model.**name** property - Required
+- prepend: string to be prepended to grid keys for grid search along with to underscores. this will generally be the model name as a string. ie "LogisticRegression" - optional
 
 **Returns:**
 Dictionary containing sklearn params as keys and list of param options as values
@@ -71,24 +79,29 @@ get_param_grid(LinearRegression)
 
 > > {'normalize': [True, False]}
 
-##### preproc
+---
+
+### preproc
 
 `def preproc(self, OHE=[], standard_scale=[], numerical_impute=[], categegorical_impute=[], label_encode={}):`
 
 **Prerocesses data frames, including onehot encoding, scaling, and imputation, and label encoding**
 
 **Args:**
-OHE: Array of columns to be processed with sklearn OneHotEncoder, this accepts non numerical categorical rows without need for label encoding. - Default []
-standard_scale: list. List of columns to be processes with standard scalar. - Defualt []
-numerical_impute: list. list of column names that should be imputed using mean method. - Default []
-categorical_impute: list. list of column names that should be imputed to 'missing'. - Default []
-label_encode: dict. Keys in the dict should be the column names to transform, the values should be lists that
-contain the various values in the column, the order of the values will determine the encoding (1st element will be 0 etc.). - Default {}
+
+- OHE: Array of columns to be processed with sklearn OneHotEncoder, this accepts non numerical categorical rows without need for label encoding. - Default []
+- standard_scale: list. List of columns to be processes with standard scalar. - Defualt []
+- numerical_impute: list. list of column names that should be imputed using mean method. - Default []
+- categorical_impute: list. list of column names that should be imputed to 'missing'. - Default []
+- label_encode: dict. Keys in the dict should be the column names to transform, the values should be lists that
+  contain the various values in the column, the order of the values will determine the encoding (1st element will be 0 etc.). - Default {}
 
 **Returns:**
 List of processed pandas dataframes. Processed dfs will overwrite self.X_train and self.X_test.
 
-##### choose_models
+---
+
+### choose_models
 
 `def choose_models(self):`
 
@@ -101,7 +114,9 @@ None
 List of sklearn model classes. Models saved to class instance under self.models, they will be automatically passed to
 the search method.
 
-##### oversample
+---
+
+### oversample
 
 `def oversample(self):`
 
@@ -113,7 +128,9 @@ None
 **Returns:**
 os_X_train, os_y_train. As matrices (as returned by SMOTE). os_X_train and os_y_train are saved to class and will be automatically applied during the search method, if oversample method is run first.
 
-##### select_features
+---
+
+### select_features
 
 `def select_features(self, model=None):`
 
@@ -126,7 +143,9 @@ be instantiated - Default is LinearRegression if prediction_type is "regression"
 **Returns:**
 limited_X_train, limited_X_test - Also replaces self.X_test and self.X_train with the limited features.
 
-##### search
+---
+
+### search
 
 `def search(self, scoring=None):`
 
