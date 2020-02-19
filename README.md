@@ -27,9 +27,10 @@ The module exposes one class, too_short.
 **init function**
 
 **Args:**
-X: pd.dataframe - Df with full X data (will be split within init) - optional (you will need to include this for most functionality)
-y: list - list of targets (will be split within init) - optional (you will need to include this for most functionality)
-prediction_type: string - String of either "classification" or "regression" - optional (you will need to include this for most functionality)
+
+- X: pd.dataframe - Df with full X data (will be split within init) - optional (you will need to include this for most functionality)
+- y: list - list of targets (will be split within init) - optional (you will need to include this for most functionality)
+- prediction_type: string - String of either "classification" or "regression" - optional (you will need to include this for most functionality)
 
 **Returns:**
 None
@@ -137,8 +138,9 @@ os_X_train, os_y_train. As matrices (as returned by SMOTE). os_X_train and os_y_
 **Select best features from X_test and X_train**
 
 **Keyword args:**
-model: sklearn model - The model that will be used in sklearns SelectFromModel method Needs to
-be instantiated - Default is LinearRegression if prediction_type is "regression", otherwise if prediction_type is "classification" defaults to LinearSVC()
+
+- model: sklearn model - The model that will be used in sklearns SelectFromModel method Needs to
+  be instantiated - Default is LinearRegression if prediction_type is "regression", otherwise if prediction_type is "classification" defaults to LinearSVC()
 
 **Returns:**
 limited_X_train, limited_X_test - Also replaces self.X_test and self.X_train with the limited features.
@@ -152,7 +154,8 @@ limited_X_train, limited_X_test - Also replaces self.X_test and self.X_train wit
 **Function performing a grid search on a list of predefined models**
 
 **Keyword Args:**
-Scoring: string - scoring param as allowed by grid search cv - optional
+
+- Scoring: string - scoring param as allowed by grid search cv - optional
 
 **Returns:**
 Dict containing each model, and within each model a sub dict containing the best grid search cv scores, best params, and test score.
