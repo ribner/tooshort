@@ -368,7 +368,7 @@ class TooShort:
                     LogisticRegression
                 ]
                 return self.models
-        raise Exception("prediction_type must be categorical or regression")
+        raise Exception("prediction_type must be classification or regression")
 
     def oversample(self):
         """Function tranforming train data using undersampling and oversampling. Uses undersampling as well as oversampling if the
@@ -472,7 +472,7 @@ class TooShort:
             if (len(self.imb_pipeline_steps) > 0):
                 steps = self.imb_pipeline_steps.copy()
                 steps.append((model.__name__, model()))
-                model_or_pipeline = Pipeline(steps)
+                model_or_pipeline = Pipeline(steps=steps)
             else:
                 model_or_pipeline = Pipeline(steps=[(model.__name__, model())])
             # perform random search if number of params is high
@@ -482,12 +482,12 @@ class TooShort:
             else:
                 search = GridSearchCV(model_or_pipeline, param_grid,
                                       n_jobs=-1, scoring=scoring)
-            search.fit(self.X_test, self.y_test)
+            search.fit(self.X_train, self.y_train)
             test_score = 'N/A'
             if (self.X_test is not None):
                 test_score = search.score(self.X_test, self.y_test)
             # remove prepended peice from param grid - KNeighborsClassifier_n_neighbors becomes n_neighbors
-            search_params_keys = search.best_params_.keys()
+            search_params_keys = list(search.best_params_.keys()).copy()
             for key in search_params_keys:
                 prepended_string = f"{model.__name__}__"
                 is_prepended = False if key.find(
@@ -498,7 +498,7 @@ class TooShort:
                     del search.best_params_[key]
                     search.best_params_[stripped_key] = values
             results[model.__name__] = {
-                'best_score': search.best_score_,
+                'best_search_score': search.best_score_,
                 'best_params': search.best_params_,
                 'test_score': test_score
             }
