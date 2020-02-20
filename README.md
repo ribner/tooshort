@@ -14,91 +14,6 @@ In short:
 - Automatically splitting train and test sets, as well as evaluting them seperately.
 - Most importantly, provides a simple method to search and compare all the relevant models and grids with either your original data, or the transformed version set in the preprocessing, oversampling, or feature selection step.
 
-## Example
-
-First, we get the wine dataset from sklearn datasets package, add a ordinal category and three non ordinal categories for examples sake. The added columns will provide no predictive use, but will illustrate the preproccessing step, and feature selection step.
-
-```
-wine = load_wine()
-X = pd.DataFrame(wine.data)
-X.columns = wine.feature_names
-y = wine.target
-X['A_FAKE_CAT'] = np.random.randint(4, size=len(y))
-X['B_FAKE_CAT'] = np.random.randint(4, size=len(y))
-X['C_FAKE_CAT'] = np.random.choice(['SWEET', 'SOUR', 'TART'], len(y))
-X['D_FAKE_LABEL_CAT'] = np.random.choice(
-    ['BAD', 'OK', 'GOOD', 'GREAT'], len(y))
-```
-
-Ok now lets use the TooShort module.
-
-```
-too_short = TooShort(X, y, prediction_type="classification")
-too_short.preproc(OHE=np.array(
-    ['A_FAKE_CAT', 'B_FAKE_CAT', 'C_FAKE_CAT']),
-    label_encode={
-    'D_FAKE_LABEL_CAT': ['BAD', 'OK', 'GOOD', 'GREAT']
-},
-    standard_scale=['alcohol', 'malic_acid', 'ash', 'alcalinity_of_ash', 'magnesium',
-                    'total_phenols', 'flavanoids', 'nonflavanoid_phenols',
-                    'proanthocyanins', 'color_intensity', 'hue',
-                    'od280/od315_of_diluted_wines', 'proline'])
-print(too_short.X_train.columns)
->> ['A_FAKE_CAT_0', 'A_FAKE_CAT_1', 'A_FAKE_CAT_2', 'A_FAKE_CAT_3',
-       'B_FAKE_CAT_0', 'B_FAKE_CAT_1', 'B_FAKE_CAT_2', 'B_FAKE_CAT_3',
-       'C_FAKE_CAT_SOUR', 'C_FAKE_CAT_SWEET', 'C_FAKE_CAT_TART', 'alcohol',
-       'malic_acid', 'ash', 'alcalinity_of_ash', 'magnesium', 'total_phenols',
-       'flavanoids', 'nonflavanoid_phenols', 'proanthocyanins',
-       'color_intensity', 'hue', 'od280/od315_of_diluted_wines', 'proline',
-       'D_FAKE_LABEL_CAT']
-```
-
-Above we can see the new rows created through one hot encoding. The final column has the original name but its contents Will be label encoded on a scale of 0 to 4 based on the arrray passed in above. The rest of the rows had standard scalar applied
-
-Lets set the models, based on the size of the dataset and the prediction type (classification in this case).
-
-```
-too_short.choose_models()
-print(too_short.models)
->> >> [<class 'sklearn.svm._classes.SVC'>, <class 'sklearn.ensemble._forest.RandomForestClassifier'>, <class 'sklearn.neighbors._classification.KNeighborsClassifier'>, <class 'sklearn.svm._classes.LinearSVC'>, <class 'sklearn.linear_model._logistic.LogisticRegression'>]
-```
-
-The models property has been set with the list of applicable models, these models are uninstantiated.
-
-Next we can search using the models above, using a grid search. We will automatically apply seperate param grids that are specific to each model for tuning.
-
-```
-result = too_short.search()
-print(result)
->> {'SVC': {'best_search_score': 0.9666666666666668, 'best_params': {'C': 1, 'gamma': 0.01, 'kernel': 'rbf'}, 'test_score': 1.0}, 'RandomForestClassifier': {'best_search_score': 0.9666666666666668, 'best_params': {'n_estimators': 2000, 'min_samples_split': 10, 'min_samples_leaf': 4, 'max_features': 'sqrt', 'max_depth': 98, 'bootstrap': True}, 'test_score': 0.9830508474576272}, 'KNeighborsClassifier': {'best_search_score': 0.9663043478260871, 'best_params': {'p': 2, 'n_neighbors': 19, 'leaf_size': 1}, 'test_score': 0.9661016949152542}, 'LinearSVC': {'best_search_score': 0.975, 'best_params': {'C': 0.01, 'dual': True}, 'test_score': 1.0}, 'LogisticRegression': {'best_search_score': 0.9666666666666668, 'best_params': {'solver': 'saga', 'penalty': 'l2', 'class_weight': {1: 0.5, 0: 0.5}, 'C': 0.1}, 'test_score': 0.9661016949152542}}
-```
-
-Above we can see the scores for each model, along with the params used, and the test score as well.
-
-Lets grab the best logistic regression params, or any other model you prefer and perform feature selection on that model and params We could have called select_features() with no params before the search method, but we should get a better result by using the specific model we have chosen for evaluation.
-
-```
-best_lr_params = result['LogisticRegression']['best_params']
-too_short.select_features(LogisticRegression(**best_lr_params))
-print(too_short.X_train.columns)
->> ['alcohol', 'malic_acid', 'ash', 'alcalinity_of_ash', 'total_phenols',
-        'flavanoids', 'proanthocyanins', 'color_intensity', 'hue',
-        'od280/od315_of_diluted_wines', 'proline']
-```
-
-Since the added categorical columns were created at random, they had no predicted value and were automatically dropped. Aside from the fake columns, it looks like we got rid of the magnesium feature as well.
-
-Now that we have narrowed down the features under specific model and params, lets manually set the model to logistic regression and see if we can do any better. We could call search directly, without setting the model but this will save us time from running the grid search again on the other models.
-
-```
-too_short.set_attributes(models=[LogisticRegression])
-results = too_short.search()
-print(results)
->> {'LogisticRegression': {'best_search_score': 0.9833333333333334, 'best_params': {'solver': 'saga', 'penalty': 'l1', 'class_weight': {1: 0.4, 0: 0.6}, 'C': 100}, 'test_score': 0.9830508474576272}}
-```
-
-It looks like the new data set with feature selection performed sligthly better (96.6% to 98.3). If we wanted to dig deeper we could try some other things like over and under sampling, or alternate preprocessing methods.
-
 ## Class methods
 
 The module exposes one class, too_short.
@@ -161,9 +76,11 @@ None
 Dictionary containing sklearn params as keys and list of param options as values
 
 **Example:**
-get_param_grid(LinearRegression)
 
+```
+get_param_grid(LinearRegression)
 > > {'normalize': [True, False]}
+```
 
 ---
 
@@ -245,7 +162,7 @@ limited_X_train, limited_X_test - Also replaces self.X_test and self.X_train wit
 **Returns:**
 Dict containing each model, and within each model a sub dict containing the best grid search cv scores, best params, and test score.
 
-## More Examples
+## Examples
 
 ### Basic model training with some preprocessing
 
@@ -357,6 +274,93 @@ too_short.choose_models()
 result = too_short.search(scoring="recall")
 
 ```
+
+---
+
+### Detailed example using settattributes, search, and feature selection
+
+First, we get the wine dataset from sklearn datasets package, add a ordinal category and three non ordinal categories for examples sake. The added columns will provide no predictive use, but will illustrate the preproccessing step, and feature selection step.
+
+```
+wine = load_wine()
+X = pd.DataFrame(wine.data)
+X.columns = wine.feature_names
+y = wine.target
+X['A_FAKE_CAT'] = np.random.randint(4, size=len(y))
+X['B_FAKE_CAT'] = np.random.randint(4, size=len(y))
+X['C_FAKE_CAT'] = np.random.choice(['SWEET', 'SOUR', 'TART'], len(y))
+X['D_FAKE_LABEL_CAT'] = np.random.choice(
+    ['BAD', 'OK', 'GOOD', 'GREAT'], len(y))
+```
+
+Ok now lets use the TooShort module.
+
+```
+too_short = TooShort(X, y, prediction_type="classification")
+too_short.preproc(OHE=np.array(
+    ['A_FAKE_CAT', 'B_FAKE_CAT', 'C_FAKE_CAT']),
+    label_encode={
+    'D_FAKE_LABEL_CAT': ['BAD', 'OK', 'GOOD', 'GREAT']
+},
+    standard_scale=['alcohol', 'malic_acid', 'ash', 'alcalinity_of_ash', 'magnesium',
+                    'total_phenols', 'flavanoids', 'nonflavanoid_phenols',
+                    'proanthocyanins', 'color_intensity', 'hue',
+                    'od280/od315_of_diluted_wines', 'proline'])
+print(too_short.X_train.columns)
+>> ['A_FAKE_CAT_0', 'A_FAKE_CAT_1', 'A_FAKE_CAT_2', 'A_FAKE_CAT_3',
+       'B_FAKE_CAT_0', 'B_FAKE_CAT_1', 'B_FAKE_CAT_2', 'B_FAKE_CAT_3',
+       'C_FAKE_CAT_SOUR', 'C_FAKE_CAT_SWEET', 'C_FAKE_CAT_TART', 'alcohol',
+       'malic_acid', 'ash', 'alcalinity_of_ash', 'magnesium', 'total_phenols',
+       'flavanoids', 'nonflavanoid_phenols', 'proanthocyanins',
+       'color_intensity', 'hue', 'od280/od315_of_diluted_wines', 'proline',
+       'D_FAKE_LABEL_CAT']
+```
+
+Above we can see the new rows created through one hot encoding. The final column has the original name but its contents Will be label encoded on a scale of 0 to 4 based on the arrray passed in above. The rest of the rows had standard scalar applied
+
+Lets set the models, based on the size of the dataset and the prediction type (classification in this case).
+
+```
+too_short.choose_models()
+print(too_short.models)
+>> >> [<class 'sklearn.svm._classes.SVC'>, <class 'sklearn.ensemble._forest.RandomForestClassifier'>, <class 'sklearn.neighbors._classification.KNeighborsClassifier'>, <class 'sklearn.svm._classes.LinearSVC'>, <class 'sklearn.linear_model._logistic.LogisticRegression'>]
+```
+
+The models property has been set with the list of applicable models, these models are uninstantiated.
+
+Next we can search using the models above, using a grid search. We will automatically apply seperate param grids that are specific to each model for tuning.
+
+```
+result = too_short.search()
+print(result)
+>> {'SVC': {'best_search_score': 0.9666666666666668, 'best_params': {'C': 1, 'gamma': 0.01, 'kernel': 'rbf'}, 'test_score': 1.0}, 'RandomForestClassifier': {'best_search_score': 0.9666666666666668, 'best_params': {'n_estimators': 2000, 'min_samples_split': 10, 'min_samples_leaf': 4, 'max_features': 'sqrt', 'max_depth': 98, 'bootstrap': True}, 'test_score': 0.9830508474576272}, 'KNeighborsClassifier': {'best_search_score': 0.9663043478260871, 'best_params': {'p': 2, 'n_neighbors': 19, 'leaf_size': 1}, 'test_score': 0.9661016949152542}, 'LinearSVC': {'best_search_score': 0.975, 'best_params': {'C': 0.01, 'dual': True}, 'test_score': 1.0}, 'LogisticRegression': {'best_search_score': 0.9666666666666668, 'best_params': {'solver': 'saga', 'penalty': 'l2', 'class_weight': {1: 0.5, 0: 0.5}, 'C': 0.1}, 'test_score': 0.9661016949152542}}
+```
+
+Above we can see the scores for each model, along with the params used, and the test score as well.
+
+Lets grab the best logistic regression params, or any other model you prefer and perform feature selection on that model and params We could have called select_features() with no params before the search method, but we should get a better result by using the specific model we have chosen for evaluation.
+
+```
+best_lr_params = result['LogisticRegression']['best_params']
+too_short.select_features(LogisticRegression(**best_lr_params))
+print(too_short.X_train.columns)
+>> ['alcohol', 'malic_acid', 'ash', 'alcalinity_of_ash', 'total_phenols',
+        'flavanoids', 'proanthocyanins', 'color_intensity', 'hue',
+        'od280/od315_of_diluted_wines', 'proline']
+```
+
+Since the added categorical columns were created at random, they had no predicted value and were automatically dropped. Aside from the fake columns, it looks like we got rid of the magnesium feature as well.
+
+Now that we have narrowed down the features under specific model and params, lets manually set the model to logistic regression and see if we can do any better. We could call search directly, without setting the model but this will save us time from running the grid search again on the other models.
+
+```
+too_short.set_attributes(models=[LogisticRegression])
+results = too_short.search()
+print(results)
+>> {'LogisticRegression': {'best_search_score': 0.9833333333333334, 'best_params': {'solver': 'saga', 'penalty': 'l1', 'class_weight': {1: 0.4, 0: 0.6}, 'C': 100}, 'test_score': 0.9830508474576272}}
+```
+
+It looks like the new data set with feature selection performed sligthly better (96.6% to 98.3). If we wanted to dig deeper we could try some other things like over and under sampling, or alternate preprocessing methods.
 
 ## Further examples
 
