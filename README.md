@@ -1,6 +1,6 @@
 # TOO SHORT
 
-## Description:
+## Description
 
 This is a package intended to make your life easier, and automate a lot of the common things dealt with in supervised learning. Specifically with building and testing sklearn models. Although, it also relies on some other useful tools like SMOTE for imabalanced data.
 
@@ -13,6 +13,12 @@ In short:
 - Feature selection based on a model input
 - Automatically splitting train and test sets, as well as evaluting them seperately.
 - Most importantly, provides a simple method to search and compare all the relevant models and grids with either your original data, or the transformed version set in the preprocessing, oversampling, or feature selection step.
+
+## Install
+
+```
+pip install too-short
+```
 
 ## Class methods
 
