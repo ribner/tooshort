@@ -28,9 +28,9 @@ The module exposes one class, too_short.
 
 **Args:**
 
-- X: pd.dataframe - Df with full X data (will be split within init) - optional (you will need to include this for most functionality)
-- y: list - list of targets (will be split within init) - optional (you will need to include this for most functionality)
-- prediction_type: string - String of either "classification" or "regression" - optional (you will need to include this for most functionality)
+- X (pd.dataframe): Df with full X data (will be split within init) - optional (you will need to include this for most functionality)
+- y (list): list of targets (will be split within init) - optional (you will need to include this for most functionality)
+- prediction_type (string): String of either "classification" or "regression" - optional (you will need to include this for most functionality)
 
 **Returns:**
 None
@@ -45,16 +45,16 @@ None
 
 **Args:**
 
-- X: Pd dataframe containing X - optional
-- y: target list - optional
-- X_test: pd dataframe - optional
-- y_test: pd dataframe - optional
-- X_train: pd dataframe - optional
-- y_train: pd dataframe - optional
-- prediction_type: string - Either "classification" or "regression" - optional
-- imb_pipline_steps: list - Containing imbalanced learn Pipeline steps. ex [('smote', SMOTE(random_state=random_state))]. If you want to use this within the search method  
+- X (Pd dataframe): containing X - optional
+- y (list): target list - optional
+- X_test (pd dataframe): X_test - optional
+- y_test (pd dataframe): y_test - optional
+- X_train (pd dataframe): X_train - optional
+- y_train (pd dataframe): y_train - optional
+- prediction_type (str): Either "classification" or "regression" - optional
+- imb_pipline_steps (list): Containing imbalanced learn Pipeline steps. ex [('smote', SMOTE(random_state=random_state))]. If you want to use this within the search method  
   dont add a sklearn model step to the end of this, that will be done automatically in the the search function. - optional
-- models: list - List of models to be used in in the search function. This would be set automatically in choose_models function, but you can override here. Do not instantiate the models within the list. - optional
+- models (list): List of models to be used in in the search function. This would be set automatically in choose_models function, but you can override here. Do not instantiate the models within the list. - optional
 
 **Returns:**
 None
@@ -69,8 +69,8 @@ None
 
 **Args:**
 
-- model: sklearns model.**name** property - Required
-- prepend: string to be prepended to grid keys for grid search along with to underscores. this will generally be the model name as a string. ie "LogisticRegression" - optional
+- model (sklearn model): models' `.__name__` property - Required
+- prepend (string): To be prepended to grid keys for grid search along with to underscores. this will generally be the model name as a string. ie "LogisticRegression" - optional
 
 **Returns:**
 Dictionary containing sklearn params as keys and list of param options as values
@@ -92,11 +92,11 @@ get_param_grid(LinearRegression)
 
 **Args:**
 
-- OHE: Array of columns to be processed with sklearn OneHotEncoder, this accepts non numerical categorical rows without need for label encoding. - Default []
-- standard_scale: list. List of columns to be processes with standard scalar. - Defualt []
-- numerical_impute: list. list of column names that should be imputed using mean method. - Default []
-- categorical_impute: list. list of column names that should be imputed to 'missing'. - Default []
-- label_encode: dict. Keys in the dict should be the column names to transform, the values should be lists that
+- OHE (list): columns to be processed with sklearn OneHotEncoder, this accepts non numerical categorical rows without need for label encoding. - Default []
+- standard_scale (list): List of columns to be processes with standard scalar. - Defualt []
+- numerical_impute (list): List of column names that should be imputed using mean method. - Default []
+- categorical_impute (list): List of column names that should be imputed to 'missing'. - Default []
+- label_encode (dict): Keys in the dict should be the column names to transform, the values should be lists that
   contain the various values in the column, the order of the values will determine the encoding (1st element will be 0 etc.). - Default {}
 
 **Returns:**
@@ -141,7 +141,7 @@ os_X_train, os_y_train. As matrices (as returned by SMOTE). os_X_train and os_y_
 
 **Keyword args:**
 
-- model: sklearn model - The model that will be used in sklearns SelectFromModel method Needs to
+- model (sklearn model): - The model that will be used in sklearns SelectFromModel method Needs to
   be instantiated - Default is LinearRegression if prediction_type is "regression", otherwise if prediction_type is "classification" defaults to LinearSVC()
 
 **Returns:**
@@ -157,7 +157,7 @@ limited_X_train, limited_X_test - Also replaces self.X_test and self.X_train wit
 
 **Keyword Args:**
 
-- Scoring: string - scoring param as allowed by grid search cv - optional
+- Scoring (string): Scoring param as allowed by grid search cv - optional
 
 **Returns:**
 Dict containing each model, and within each model a sub dict containing the best grid search cv scores, best params, and test score.
